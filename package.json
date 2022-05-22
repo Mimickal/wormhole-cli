@@ -10,6 +10,7 @@
   "author": "Mimickal <mimickal.dev@gmail.com>",
   "license": "GPL-3.0",
   "dependencies": {
+    "cli-progress": "^3.11.1",
     "minimist": "^1.2.6",
     "puppeteer": "^14.1.1"
   }

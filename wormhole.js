@@ -1,8 +1,17 @@
 import puppeteer from 'puppeteer';
+import { SingleBar } from 'cli-progress';
 
 const WORMHOLE_HOME = 'https://wormhole.app';
+const PROGRESS_MAX = 100;
 
-/** Uploads a file to wormhole.app using a headless browser. */
+/**
+ * Uploads a file to wormhole.app using a headless browser.
+ *
+ * Wormhole's web interface doesn't have any consistent HTML id attributes we
+ * can rely on, so we use a combination of CSS and XPath selectors to navigate
+ * the page and extract progress info. This is obviously brittle and could
+ * break at any time.
+ */
 export async function uploadFiles(files, options={}) {
 	function vlog(text) {
 		if (options.verbose) {
@@ -18,17 +27,17 @@ export async function uploadFiles(files, options={}) {
 	await page.goto(WORMHOLE_HOME);
 
 	vlog('Clicking file upload button');
-	// menu-button has a random number at the end, so we need this selector BS.
 	await page.click('button[id^=menu-button]');
 	const [filechooser] = await Promise.all([
 		page.waitForFileChooser(),
-		// Same story here, except the random number is in the middle this time.
 		page.click('button[id^=menu-list][id*=menuitem]'),
 	]);
 
 	vlog('Beginning file upload');
 	await filechooser.accept(files);
 	await page.waitForNavigation();
+
+	const progressBar = new SingleBar();
 
 	if (options.quiet) {
 		console.log(page.url());
@@ -38,25 +47,30 @@ export async function uploadFiles(files, options={}) {
 		console.log();
 		console.log(`Download URL: ${page.url()}`);
 		console.log();
+		progressBar.start(PROGRESS_MAX, 0);
 	}
 
-	//<div style="width: 100%;" aria-valuemax="100" aria-valuemin="0" role="progressbar" class="css-177at4r" aria-valuenow="100"></div>
+	// Reproduce the progress bar on the command line.
 	await new Promise(resolve => {
-		async function doit() {
-			const val = await page.$eval('[role=progressbar]',
+		async function checkProgress() {
+			const progressVal = await page.$eval('[role=progressbar]',
 				element => element.getAttribute('aria-valuenow')
 			);
 
-			vlog(val);
-			if (val == 100) {
+			if (!options.quiet) {
+				progressBar.update(Number.parseInt(progressVal) || 0);
+			}
+
+			if (progressVal == PROGRESS_MAX) {
 				resolve();
 			} else {
-				setTimeout(doit, 1000);
+				setTimeout(checkProgress, 1000);
 			}
 		};
 
-		doit();
+		checkProgress();
 	});
+	progressBar.stop();
 
 	vlog('Finalizing upload');
 	await page.waitForXPath('//h2[contains(., "Uploaded")]');
