@@ -3,11 +3,18 @@
   "version": "1.0.0",
   "description": "A command line interface for wormhole.app",
   "main": "index.js",
-  "type": "module",
+  "private": "true",
+  "bin": {
+    "wormhole-cli": "."
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Mimickal <mimickal.dev@gmail.com>",
+  "author": {
+    "name": "Mimickal",
+    "email": "mimickal.dev@gmail.com",
+    "url": "https://github.com/Mimickal"
+  },
   "license": "GPL-3.0",
   "dependencies": {
     "cli-progress": "^3.11.1",

@@ -1,10 +1,51 @@
-# Wormhole.app command line interface
+# [Wormhole.app](https://wormhole.app/) command line interface
 
 <a href="LICENSE.md"><img align="right" alt="GPL-3.0 Logo"
 src="https://www.gnu.org/graphics/gplv3-127x51.png">
 </a>
 
-This is a command-line interface for [wormhole.app](https://wormhole.app/).
+## Usage
+
+```bash
+wormhole-cli [OPTIONS] <file(s)>
+```
+
+```
+~> wormhole-cli ~/Downloads/testfile.bin
+Download can be started before upload is finished.
+Program will exit once upload is complete...
+
+Download URL: https://wormhole.app/[redacted]
+
+progress [========================================] 100% | ETA: 0s | 100/100
+```
+
+### Options
+
+```
+-q --quiet    Only print the file download URL.
+-v --verbose  Print each step of the file upload process. Useful for debugging.
+-h --help     Print program usage info and exit.
+--version     Print program version and exit.
+```
+
+## Installing
+
+```bash
+git clone https://github.com/Mimickal/wormhole-cli.git
+cd wormhole-cli
+npm install -g .
+```
+
+## Limitations / Planned features
+
+Right now this just uploads one or more files to Wormhole using the default
+settings. It cannot view or delete uploaded files.
+
+Planned features:
+- Add the ability to tweak file settings (number downloads, expiration)
+- Show all previously uploaded files
+- Delete previously uploaded files
 
 ## How it works
 

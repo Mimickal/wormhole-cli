@@ -1,6 +1,7 @@
-import { readFileSync } from 'fs';
-import minimist from 'minimist';
-import { uploadFiles } from './wormhole.js';
+#!/usr/bin/env node
+const info = require('./package.json');
+const minimist = require('minimist');
+const { uploadFiles } = require('./wormhole');
 
 const argv = minimist(process.argv.slice(2), {
 	alias: {
@@ -23,7 +24,6 @@ const argv = minimist(process.argv.slice(2), {
 });
 argv.files = argv._;
 
-const info = JSON.parse(readFileSync('./package.json'));
 const USAGE = [
 	`Usage: ${info.name} [OPTIONS] <file(s)>`,
 	'',
@@ -61,7 +61,7 @@ if (argv.files.length === 0) {
 	process.exit(1);
 }
 
-await uploadFiles(argv.files, {
+(async () => await uploadFiles(argv.files, {
 	quiet: argv.quiet,
 	verbose: argv.verbose,
-});
+}))();

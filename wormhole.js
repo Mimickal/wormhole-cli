@@ -1,5 +1,5 @@
-import puppeteer from 'puppeteer';
-import { SingleBar } from 'cli-progress';
+const puppeteer = require('puppeteer');
+const { SingleBar } = require('cli-progress');
 
 const WORMHOLE_HOME = 'https://wormhole.app';
 const PROGRESS_MAX = 100;
@@ -12,7 +12,7 @@ const PROGRESS_MAX = 100;
  * the page and extract progress info. This is obviously brittle and could
  * break at any time.
  */
-export async function uploadFiles(files, options={}) {
+module.exports.uploadFiles = async function uploadFiles(files, options={}) {
 	function vlog(text) {
 		if (options.verbose) {
 			console.log(text);
