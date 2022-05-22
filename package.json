@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "A command line interface for wormhole.app",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Mimickal <mimickal.dev@gmail.com>",
   "license": "GPL-3.0",
   "dependencies": {
+    "minimist": "^1.2.6",
     "puppeteer": "^14.1.1"
   }
 }

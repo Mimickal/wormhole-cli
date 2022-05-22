@@ -1,49 +1,42 @@
-const puppeteer = require('puppeteer');
+import { readFileSync } from 'fs';
+import minimist from 'minimist';
+import { uploadFiles } from './wormhole.js';
 
-const file = process.argv[2];
+const argv = minimist(process.argv.slice(2), {
+	alias: {
+		help: 'h',
+	},
+	boolean: [
+		'help',
+		'version',
+	],
+	default: {
+		help: false,
+		version: false,
+	},
+});
+argv.files = argv._;
 
-(async () => {
-	console.log('starting');
-	const browser = await puppeteer.launch();
-	const page = await browser.newPage();
-	console.log('going to page');
-	await page.goto('https://wormhole.app/');
+const info = JSON.parse(readFileSync('./package.json'));
+const USAGE = [
+	`${info.name} ${info.version}`,
+	info.description,
+	'',
+	`Usage: ${info.name} [OPTIONS] <file(s)>`,
+	'',
+	'Options:',
+	`\t -h --help  Prints this help text and exits.`,
+	`\t --version  Prints the program's version and exits.`,
+].join('\n')
 
-	console.log('clicking file upload');
-	// menu-button has a random number at the end, so we need this selector BS
-	await page.click('button[id^=menu-button]');
-	const [filechooser] = await Promise.all([
-		page.waitForFileChooser(),
-		page.click('button[id^=menu-list][id*=menuitem]'),
-	]);
-	await filechooser.accept([file]);
-	await page.waitForNavigation();
+if (argv.help || argv.files.length === 0) {
+	console.log(USAGE);
+	process.exit();
+}
 
-	console.log(page.url());
+if (argv.version) {
+	console.log(info.version);
+	process.exit();
+}
 
-	await page.screenshot({ path: 'test.png' });
-
-	//<div style="width: 100%;" aria-valuemax="100" aria-valuemin="0" role="progressbar" class="css-177at4r" aria-valuenow="100"></div>
-	await new Promise(resolve => {
-		async function doit() {
-			const val = await page.$eval('[role=progressbar]',
-				element => element.getAttribute('aria-valuenow')
-			);
-
-			console.log(val);
-			if (val == 100) {
-				resolve();
-			} else {
-				setTimeout(doit, 1000);
-			}
-		};
-
-		doit();
-	});
-	await page.screenshot({ path: 'test.png' });
-	console.log('upload');
-	await page.waitForXPath('//h2[contains(., "Uploaded")]');
-	console.log('done');
-
-	await browser.close();
-})();
+await uploadFiles(argv.files);
