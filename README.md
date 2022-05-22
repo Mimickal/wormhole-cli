@@ -32,9 +32,14 @@ progress [========================================] 100% | ETA: 0s | 100/100
 ## Installing
 
 ```bash
+# You can use git (recommended for easier updating)
 git clone https://github.com/Mimickal/wormhole-cli.git
+
+# Or just download / extract the latest release
+
 cd wormhole-cli
-npm install -g .
+npm install
+npm install -g
 ```
 
 ## Limitations / Planned features
