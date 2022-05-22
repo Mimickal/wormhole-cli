@@ -23,10 +23,11 @@ progress [========================================] 100% | ETA: 0s | 100/100
 ### Options
 
 ```
--q --quiet    Only print the file download URL.
--v --verbose  Print each step of the file upload process. Useful for debugging.
--h --help     Print program usage info and exit.
---version     Print program version and exit.
+-q --quiet     Only print the file download URL.
+-v --verbose   Print each step of the file upload process. Useful for debugging.
+--chrome-args  Arguments passed to the underlying Chromium instance.
+-h --help      Print program usage info and exit.
+--version      Print program version and exit.
 ```
 
 ## Installing
@@ -60,6 +61,19 @@ Puppeteer also downloads the frustratingly large Chromium package, which means
 what should be a several-KB script with a few HTTP requests is instead a
 several-KB script with a ~250MB dependency hanging off of it. Sorry.
 At least it's self-contained.
+
+## Troubleshooting
+
+Errors like this may come up on older Linux installs.
+
+```
+No usable sandbox! Update your kernel or see https://chromium.googlesource.com/chromium/src/+/main/docs/linux/suid_sandbox_development.md for more information on developing with the SUID sandbox. If you want to live dangerously and need an immediate workaround, you can try using --no-sandbox.
+```
+
+You can work around this using `--chrome-args`:
+```bash
+wormhole-cli --chrome-args="--no-sandbox" <your file>
+```
 
 # License
 This code is licensed under the

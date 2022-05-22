@@ -20,7 +20,9 @@ module.exports.uploadFiles = async function uploadFiles(files, options={}) {
 	}
 
 	vlog('Starting headless browser');
-	const browser = await puppeteer.launch();
+	const browser = await puppeteer.launch({
+		args: options.chrome_args,
+	});
 	const page = await browser.newPage();
 
 	vlog(`Loading ${WORMHOLE_HOME}`);

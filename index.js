@@ -21,8 +21,12 @@ const argv = minimist(process.argv.slice(2), {
 		verbose: false,
 		version: false,
 	},
+	string: [
+		'chrome-args',
+	]
 });
 argv.files = argv._;
+argv.chrome_args = argv['chrome-args'].split(/\s+/);
 
 const USAGE = [
 	`Usage: ${info.name} [OPTIONS] <file(s)>`,
@@ -30,6 +34,7 @@ const USAGE = [
 	'Options:',
 	`\t -q --quiet     Print only the download URL.`,
 	`\t -v --verbose   Prints each step of the upload process.`,
+	`\t --chrome-args  Arguments passed to the underlying Chromium browser.`,
 	`\t -h --help      Prints this help text and exits.`,
 	`\t --version      Prints the program's version and exits.`,
 ].join('\n')
@@ -62,6 +67,7 @@ if (argv.files.length === 0) {
 }
 
 (async () => await uploadFiles(argv.files, {
+	chrome_args: argv.chrome_args,
 	quiet: argv.quiet,
 	verbose: argv.verbose,
 }))();
