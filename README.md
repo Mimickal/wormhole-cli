@@ -46,12 +46,15 @@ npm install -g
 ## Limitations / Planned features
 
 Right now this just uploads one or more files to Wormhole using the default
-settings. It cannot view or delete uploaded files.
+settings. It cannot view or delete uploaded files. It also cannot transfer files
+over 5GB, because Wormhole uses peer-to-peer transfers for this, which Puppeteer
+seems to not like.
 
 Planned features:
 - Add the ability to tweak file settings (number downloads, expiration)
 - Show all previously uploaded files
 - Delete previously uploaded files
+- Handle files above 5GB
 
 ## How it works
 

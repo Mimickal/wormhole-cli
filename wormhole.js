@@ -1,6 +1,8 @@
-const puppeteer = require('puppeteer');
 const { SingleBar } = require('cli-progress');
+const { statSync } = require('fs');
+const puppeteer = require('puppeteer');
 
+const DIRECT_TRANSFER_THRESHOLD = 5e9;
 const WORMHOLE_HOME = 'https://wormhole.app';
 const PROGRESS_MAX = 100;
 
@@ -13,6 +15,19 @@ const PROGRESS_MAX = 100;
  * break at any time.
  */
 module.exports.uploadFiles = async function uploadFiles(files, options={}) {
+	const totalSize = files.reduce((total, file) => {
+		return total + statSync(file).size;
+	}, 0);
+
+	if (totalSize > DIRECT_TRANSFER_THRESHOLD) {
+		console.error('Error: total upload size exceeds 5GB.');
+		console.error(
+			'Wormhole supports this using peer-to-peer transfers, ' +
+			'but this script currently does not.'
+		);
+		return;
+	}
+
 	function vlog(text) {
 		if (options.verbose) {
 			console.log(text);
@@ -22,6 +37,7 @@ module.exports.uploadFiles = async function uploadFiles(files, options={}) {
 	vlog('Starting headless browser');
 	const browser = await puppeteer.launch({
 		args: options.chrome_args,
+		headless: 'new',
 	});
 	const page = await browser.newPage();
 
@@ -39,7 +55,9 @@ module.exports.uploadFiles = async function uploadFiles(files, options={}) {
 	await filechooser.accept(files);
 	await page.waitForNavigation();
 
-	const progressBar = new SingleBar();
+	const progressBar = new SingleBar({
+		format: '{label} [{bar}] {percentage}% | ETA: {eta}s',
+	});
 
 	if (options.quiet) {
 		console.log(page.url());
@@ -49,36 +67,53 @@ module.exports.uploadFiles = async function uploadFiles(files, options={}) {
 		console.log();
 		console.log(`Download URL: ${page.url()}`);
 		console.log();
-		progressBar.start(PROGRESS_MAX, 0);
+		progressBar.start(PROGRESS_MAX, 0, { label: 'Progress' });
 	}
+
+	// TODO handle these labels on the progress bar
+	// h2 Encrypting...
+	// h2 Uploading...
 
 	// Reproduce the progress bar on the command line.
+	let interval;
 	if (!options.quiet) {
-		await new Promise(resolve => {
-			async function checkProgress() {
-				const progressVal = await page.$eval('[role=progressbar]',
+		// The progress bar in Wormhole's UI momentarily resets to 0 before
+		// disappearing, so we need to check for the value going down too.
+		// Interval function makes a closure over this value.
+		let prevProgressVal = 0;
+
+		interval = setInterval(async () => {
+			let progressVal;
+			try {
+				const valueStr = await page.$eval('[role=progressbar]',
 					element => element.getAttribute('aria-valuenow')
 				);
+				progressVal = Number.parseInt(valueStr);
+			} catch {}
 
-				if (!options.quiet) {
-					progressBar.update(Number.parseInt(progressVal) || 0);
-				}
-
-				if (progressVal == PROGRESS_MAX) {
-					resolve();
-				} else {
-					setTimeout(checkProgress, 1000);
-				}
-			};
-
-			checkProgress();
-		});
+			if (progressVal > prevProgressVal) {
+				progressBar.update(progressVal); // TODO update label here
+				prevProgressVal = progressVal;
+			}
+		}, 1000);
 	}
+
+	const uploadResult = await Promise.race([
+		page.waitForSelector('h2 ::-p-text(Uploaded)',        { timeout: 0 }),
+		page.waitForSelector('h2 ::-p-text(Direct transfer)', { timeout: 0 }),
+	]);
+
+	clearInterval(interval);
+	progressBar.update(100);
 	progressBar.stop();
 
-	vlog('Finalizing upload');
-	await page.waitForXPath('//h2[contains(., "Uploaded")]');
 	vlog('Done!');
+	const uploadText = await uploadResult.evaluate(elem => elem.textContent);
+	if (uploadText === 'Direct transfer') {
+		console.error('Error: File(s) uploaded in direct transfer mode.');
+		console.error('Wormhole transfers files above 5GB directly rather than uploading.');
+		console.error('This script does not currently support direct-transfer mode.');
+	}
 
 	await browser.close();
 }

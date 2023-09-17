@@ -19,6 +19,6 @@
   "dependencies": {
     "cli-progress": "^3.11.1",
     "minimist": "^1.2.6",
-    "puppeteer": "^14.1.1"
+    "puppeteer": "^21.2.1"
   }
 }
