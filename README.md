@@ -39,7 +39,7 @@ git clone https://github.com/Mimickal/wormhole-cli.git
 # Or just download / extract the latest release
 
 cd wormhole-cli
-npm install
+npm ci
 npm install -g
 ```
 
