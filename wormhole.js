@@ -53,25 +53,27 @@ module.exports.uploadFiles = async function uploadFiles(files, options={}) {
 	}
 
 	// Reproduce the progress bar on the command line.
-	await new Promise(resolve => {
-		async function checkProgress() {
-			const progressVal = await page.$eval('[role=progressbar]',
-				element => element.getAttribute('aria-valuenow')
-			);
+	if (!options.quiet) {
+		await new Promise(resolve => {
+			async function checkProgress() {
+				const progressVal = await page.$eval('[role=progressbar]',
+					element => element.getAttribute('aria-valuenow')
+				);
 
-			if (!options.quiet) {
-				progressBar.update(Number.parseInt(progressVal) || 0);
-			}
+				if (!options.quiet) {
+					progressBar.update(Number.parseInt(progressVal) || 0);
+				}
 
-			if (progressVal == PROGRESS_MAX) {
-				resolve();
-			} else {
-				setTimeout(checkProgress, 1000);
-			}
-		};
+				if (progressVal == PROGRESS_MAX) {
+					resolve();
+				} else {
+					setTimeout(checkProgress, 1000);
+				}
+			};
 
-		checkProgress();
-	});
+			checkProgress();
+		});
+	}
 	progressBar.stop();
 
 	vlog('Finalizing upload');
