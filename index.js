@@ -26,7 +26,7 @@ const argv = minimist(process.argv.slice(2), {
 	]
 });
 argv.files = argv._;
-argv.chrome_args = argv['chrome-args'].split(/\s+/);
+argv.chrome_args = argv['chrome-args']?.split(/\s+/);
 
 const USAGE = [
 	`Usage: ${info.name} [OPTIONS] <file(s)>`,
